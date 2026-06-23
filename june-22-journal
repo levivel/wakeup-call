@@ -1,0 +1,14 @@
+1. Provision PostgreSQL and define core tables. At minimum:
+
+users — id, phone (E.164 format), timezone, status (active/paused/opted-out), stripe_customer_id, created_at
+goals — id, user_id, description, target_date, status, created_at
+check_ins — id, user_id, goal_id, scheduled_for, sent_at, reply_text, replied_at
+obstacles — id, user_id, goal_id, description, logged_at
+
+This schema is the foundation that the scheduler reads from, the webhook writes to, and the LLM pulls history from.
+2. Stand up a minimal backend skeleton (Node/Express or Python/FastAPI) with one health-check route and a database connection, then deploy it to Render/Railway/Fly so you have a live, HTTPS-accessible URL. You need this URL early because Twilio webhooks and Stripe webhooks both require a public HTTPS endpoint, and getting deployment working on day one removes a class of surprises later.
+Why this order: SMS sending, Stripe charges, and LLM coaching are all features that read from or write to the data model. If you build them first, you'll rebuild them once the schema settles.
+One thing to flag early, since it gates your launch more than code does: A2P 10DLC registration for US SMS takes multiple days to approve. Start that registration in parallel with step 1 so it's not blocking you at the end.
+A decision worth making now, since it shapes the schema and the onboarding flow: is signup web-based (where Stripe Checkout naturally lives) or pure SMS? Stripe pushes you toward at least a minimal web page for payment capture, which may answer that open question for you.
+
+started at 5:30 PM, June 22, 2026
